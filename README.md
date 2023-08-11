@@ -1,4 +1,4 @@
-# cli-google-search
+# ttybrowser
 ## Underlying problem
 I often would rather not have the browser running whilst coding.
 **(battery saving, less distractions, minimalist feel, ...)**
