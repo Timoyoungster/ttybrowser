@@ -26,4 +26,4 @@ char * n_send_search_request(char *search_query);
 /*
  * changes the used search engine
  */
-void n_change_search_engine(enum search_type st);
+void n_change_search_engine(enum n_search_engine st);
