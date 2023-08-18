@@ -1,9 +1,9 @@
 /*
  * Enum for the search strings of availiable search engines
  */
-enum n_search_engine { 
-  GOOGLE, DUCKDUCKGO, MAX_SEARCH_ENGINE
-};
+typedef enum { 
+  GOOGLE, DUCKDUCKGO
+} n_search_engine_t;
 
 /*
  * Requests the given link
@@ -26,4 +26,4 @@ char * n_send_search_request(char *search_query);
 /*
  * changes the used search engine
  */
-void n_change_search_engine(enum search_type st);
+void n_change_search_engine(char start_character);
