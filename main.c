@@ -21,7 +21,16 @@ int main(int argc, char *argv[]) {
     }
   }
 
-  char *input_str = argv[0];
+  /* 
+   * if the input_str isn't at the end use the first argument
+   * (obviously if no search string is given it will search
+   *  for something like "-e" => not ideal, wontfix for now)
+   */
+  if (optind == argc) {
+    optind = 1;
+  }
+
+  char *input_str = argv[optind];
   char *page;
 
   if (is_url == TRUE) {
@@ -31,7 +40,7 @@ int main(int argc, char *argv[]) {
     page = n_send_search_request(input_str);
   }
 
-  printf("%s\n", input_str);
+  printf("%s\n", page);
 
   // show page
 

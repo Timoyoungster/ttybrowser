@@ -3,4 +3,4 @@ runtime:
 
 debug:
 	gcc -g -o ttybrowser_debug main.c net.c
-	gdb ttybrowser_debug
+	lldb ttybrowser_debug

@@ -1,5 +1,10 @@
 /*
  * Enum for the search strings of availiable search engines
+ * 
+ * !!! When reordering/appending/changing this enum !!!
+ * !!!   the changes need to be mirrored for the    !!! 
+ * !!!        array search_engines in net.c         !!!
+ * !!!       and in n_change_search_engine()        !!!
  */
 typedef enum { 
   GOOGLE, DUCKDUCKGO
