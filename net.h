@@ -1,3 +1,7 @@
+
+#define ERROR -1
+#define SUCCESS 0
+
 /*
  * Enum for the search strings of availiable search engines
  * 

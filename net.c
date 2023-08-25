@@ -22,32 +22,116 @@ static const char * const search_engines[] = {
 };
 
 /*
+ * Iterates through the input string (starting at start_at) and 
+ * returns the nth-occurance of c (search character)
+ *
+ * (nth is zero based; find first '.' => nth=1)
+ * (start_at is zero based as well)
+ */
+static int get_inx_start_at(char *str, char c, 
+    int nth, int start_at) 
+{
+  int count = 0;
+  for (int i = start_at; i < strlen(str); i++) {
+    if (str[i] == c) {
+      if (count == nth) {
+        return i;
+      }
+    }
+  }
+  return ERROR;
+}
+
+/*
+ * Iterates through the input string and 
+ * returns the nth-occurance of c (search character)
+ *
+ * (nth is zero based; find first '.' => nth=1)
+ */
+static int get_inx(char *str, char c, int nth) {
+  return get_inx_start_at(str, c, nth, 0);
+}
+
+/*
+ * Builds the request string and returns it
+ * (free needs to be done by the caller)
+ */
+static char * build_request(char *method, char *http_version,
+    char *host, char *data) {
+  char *result = malloc(sizeof(char)
+      * (strlen(method) + 1 + strlen(data) + 1 + 
+         strlen(http_version) + 7 + strlen(host) + 5));
+  strcpy(result, method);
+  strcpy(result, " ");
+  strcat(result, data);
+  strcpy(result, " ");
+  strcat(result, http_version);
+  strcpy(result, "\r\nHost:");
+  strcat(result, host);
+  strcpy(result, "\r\n\r\n");
+  return result;
+}
+
+/*
  * Requests the given link
  *
  * returns the address of the response string from the server
+ * or NULL on error
  * (free needs to be done by the caller!)
  */
 char * n_send_request(char *link) {
   printf("Opening link: %s\n", link);
 
+  /*
+   * get the start and end of the host
+   * (start incl; end excl)
+   */
+  int first_dot = get_inx(link, '.', 0);
+  if (first_dot < 3) {
+    return NULL;
+  }
+  int host_start = first_dot - 3;
+  int host_end;
+  if (link[0] == 'h') {
+    host_end = get_inx(link, '/', 2);
+  }
+  else {
+    host_end = get_inx(link, '/', 0);
+  }
+
+  /*
+   * prepare request string parts
+   */
+  char method[] = "GET";
+  char http_version[] = "HTTP/1.1";
+  char *host = malloc(host_end - host_start + 1);
+  char *args = malloc(strlen(link) - host_end + 1);
+
+  strlcpy(host, &link[host_start], host_end - host_start + 1);
+  strlcpy(host, &link[host_end], strlen(link) - host_end + 1);
+
+
+  /*
+   * do the web magic
+   */
   char site[] = "142.250.217.132"; /* get through getaddrinfo() */
   struct sockaddr_in site_addr = { 
     .sin_family = AF_INET, 
     .sin_port = htons(80) 
   };
   char buff[10] = {0};
-  char req[] = "GET / HTTP/1.1\r\nHost:www.google.com\r\n\r\n";
+  char *req = build_request(method, http_version, host, args); // "GET / HTTP/1.1\r\nHost:www.google.com\r\n\r\n";
   int sock = socket(AF_INET, SOCK_STREAM, 0);
-  if (sock < 0) return -1;
+  if (sock < 0) return NULL;
 
   if (inet_pton(AF_INET, site, &site_addr.sin_addr) < 0) {
     fprintf(stderr, "invalid address\n");
-    return -1;
+    return NULL;
   }
 
   if (connect(sock, (struct sockaddr*) &site_addr, sizeof(site_addr)) < 0) {
     fprintf(stderr, "connection failed\n");
-    return -1;
+    return NULL;
   }
 
   send(sock, req, strlen(req), 0);
