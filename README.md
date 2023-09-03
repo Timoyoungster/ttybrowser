@@ -15,3 +15,4 @@ print out the results to the terminal in a human readable fashion.
 ### Commands
     - search    (search for the given string; can be omitted)
     - link      (open the link with the given number)
+    - engine    (change the used search engine)
