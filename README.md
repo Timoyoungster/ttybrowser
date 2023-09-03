@@ -13,5 +13,5 @@ print out the results to the terminal in a human readable fashion.
 ## Usage
     ttybrowser [command] [argument]  
 ### Commands
-    search
-    link
+    - search    (search for the given string; can be omitted)
+    - link      (open the link with the given number)
