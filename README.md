@@ -9,8 +9,3 @@ internet and so I end up starting the browser anyways.
 ## Solution
 This project. It should be a quick way to run a google search and 
 print out the results to the terminal in a human readable fashion.
-
-## Availiable Commands
-- search_string
-- last
-- history
