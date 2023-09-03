@@ -1,7 +1,7 @@
 # ttybrowser
 ## Underlying problem
 I often would rather not have the browser running whilst coding.
-**(battery saving, less distractions, minimalist feel, ...)**
+*(battery saving, less distractions, minimalist feel, ...)*
 
 But sometimes I just need a quick way to look something up on the
 internet and so I end up starting the browser anyways.
