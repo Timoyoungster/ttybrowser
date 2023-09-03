@@ -12,4 +12,5 @@ print out the results to the terminal in a human readable fashion.
 
 ## Usage
 ttybrowser *search_string*
+
 ttybrowser link *link_number*
