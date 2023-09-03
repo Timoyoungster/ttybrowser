@@ -11,5 +11,7 @@ This project. It should be a quick way to run a google search and
 print out the results to the terminal in a human readable fashion.
 
 ## Usage
-ttybrowser *search_string*  
-ttybrowser link *link_number*
+    ttybrowser [command] [argument]  
+### Commands
+    search
+    link
