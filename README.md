@@ -15,4 +15,4 @@ print out the results to the terminal in a human readable fashion.
 ### Commands
     search [search_string]  (search for the given string; can be omitted)
     link   [link_number]    (open the link with the given number)
-    set_engine [GOOGLE | DUCKDUCKGO]  (change the used search engine; *more may be added*)
+    engine [GOOGLE | DUCKDUCKGO]  (change the used search engine; *more may be added*)
