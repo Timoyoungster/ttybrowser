@@ -3,6 +3,8 @@
 #include <string.h>
 #include <arpa/inet.h>
 #include <sys/socket.h>
+#include <sys/types.h>
+#include <netdb.h>
 #include <unistd.h>
 #include "net.h"
 
@@ -34,7 +36,7 @@ static int get_inx_start_at(char *str, char c,
   int count = 0;
   for (int i = start_at; i < strlen(str); i++) {
     if (str[i] == c) {
-      if (count == nth) {
+      if (nth == count++) {
         return i;
       }
     }
@@ -56,19 +58,23 @@ static int get_inx(char *str, char c, int nth) {
  * Builds the request string and returns it
  * (free needs to be done by the caller)
  */
-static char * build_request(char *method, char *http_version,
+static char * build_get_request(char *http_version,
     char *host, char *data) {
+  char method[] = "GET";
   char *result = malloc(sizeof(char)
-      * (strlen(method) + 1 + strlen(data) + 1 + 
-         strlen(http_version) + 7 + strlen(host) + 5));
+      * (
+          3 + 1 + strlen(data) + 1 + 
+          strlen(http_version) + 7 + strlen(host) + 5
+        )
+    );
   strcpy(result, method);
-  strcpy(result, " ");
+  strcat(result, " ");
   strcat(result, data);
-  strcpy(result, " ");
+  strcat(result, " ");
   strcat(result, http_version);
-  strcpy(result, "\r\nHost:");
+  strcat(result, "\r\nHost:");
   strcat(result, host);
-  strcpy(result, "\r\n\r\n");
+  strcat(result, "\r\n\r\n");
   return result;
 }
 
@@ -102,45 +108,90 @@ char * n_send_request(char *link) {
   /*
    * prepare request string parts
    */
-  char method[] = "GET";
   char http_version[] = "HTTP/1.1";
   char *host = malloc(host_end - host_start + 1);
   char *args = malloc(strlen(link) - host_end + 1);
 
   strlcpy(host, &link[host_start], host_end - host_start + 1);
-  strlcpy(host, &link[host_end], strlen(link) - host_end + 1);
-
+  strlcpy(args, &link[host_end], strlen(link) - host_end + 1);
 
   /*
-   * do the web magic
+   * create the request string
+   *
+   * "GET / HTTP/1.1\r\nHost:www.google.com\r\n\r\n"
    */
-  char site[] = "142.250.217.132"; /* get through getaddrinfo() */
-  struct sockaddr_in site_addr = { 
-    .sin_family = AF_INET, 
-    .sin_port = htons(80) 
-  };
-  char buff[10] = {0};
-  char *req = build_request(method, http_version, host, args); // "GET / HTTP/1.1\r\nHost:www.google.com\r\n\r\n";
-  int sock = socket(AF_INET, SOCK_STREAM, 0);
-  if (sock < 0) return NULL;
+  char *req = build_get_request(http_version, host, args);
 
-  if (inet_pton(AF_INET, site, &site_addr.sin_addr) < 0) {
-    fprintf(stderr, "invalid address\n");
+  /*
+   * create address structs
+   */
+  struct addrinfo hints;
+  struct addrinfo *result, *rp;
+
+  memset(&hints, 0, sizeof(hints));
+  hints.ai_family = AF_UNSPEC;
+  hints.ai_socktype = SOCK_STREAM;
+  hints.ai_flags = 0;
+  hints.ai_protocol = 0;
+  hints.ai_canonname = NULL;
+  hints.ai_addr = NULL;
+  hints.ai_next = NULL;
+
+  /*
+   * get the availiable addresses
+   */
+  int error = getaddrinfo(host, "https", &hints, &result);
+  if (error != 0) {
+    fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(error));
     return NULL;
   }
 
-  if (connect(sock, (struct sockaddr*) &site_addr, sizeof(site_addr)) < 0) {
-    fprintf(stderr, "connection failed\n");
+  /*
+   * create the socket with the first address that works
+   */
+  int sock;
+  for (rp = result; rp != NULL; rp = rp->ai_next) {
+    sock = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
+
+    if (sock == -1)
+      continue;
+
+    if (connect(sock, rp->ai_addr, rp->ai_addrlen) == 0)
+      break;
+
+    close(sock);
+  }
+
+  freeaddrinfo(result);
+
+  if (rp == NULL) {
+    fprintf(stderr, "Could not connect to host %s\n", host);
     return NULL;
   }
 
-  send(sock, req, strlen(req), 0);
-
-  while (read(sock, buff, 8) == 8) {
-    printf("%s", buff);
+  /*
+   * send the request
+   */
+  error = send(sock, req, strlen(req), 0);
+  if (error == -1) {
+    fprintf(stderr, "No data sent!");
+    return NULL;
   }
 
+  /*
+   * read the response
+   */
+  char response_buf[READ_BUF_SIZE] = {0};
+  while ((error = read(sock, response_buf, READ_BUF_SIZE)) > 0) {
+    printf("%s", response_buf);
+  }
 
+  if (error == -1) {
+    fprintf(stderr, "Couldn't read response stream!");
+    return NULL;
+  }
+
+  close(sock);
   free(link);
   return "Request sending not yet implemented!";
 }
@@ -160,6 +211,14 @@ char * n_send_search_request(char *search_query) {
       * engine_string_len; /* no +1 because engine_string_len includes it */
 
   char *link = malloc(link_len);
+
+  /*
+   * replace spaces
+   */
+  for (int i = 0; i < strlen(search_query); i++) {
+    if (search_query[i] == ' ')
+      search_query[i] = '+';
+  }
 
   /* 
    * copy the engines query string to the link 

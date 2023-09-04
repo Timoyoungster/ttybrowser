@@ -14,5 +14,5 @@ print out the results to the terminal in a human readable fashion.
     ttybrowser [command] [argument]  
 ### Commands
     search [search_string]  (search for the given string; can be omitted)
-    link   [link_number]    (open the link with the given number)
+    link   [link]    (requests the given link; if link is numeric it follows the link with that number from the previous page)
     engine [GOOGLE | DUCKDUCKGO]  (change the used search engine; *more may be added*)

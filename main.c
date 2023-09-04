@@ -31,16 +31,13 @@ int main(int argc, char *argv[]) {
   }
 
   char *input_str = argv[optind];
-  char *page;
 
   if (is_url == TRUE) {
-    page = n_send_request(input_str);
+    n_send_request(input_str);
   }
   else {
-    page = n_send_search_request(input_str);
+    n_send_search_request(input_str);
   }
-
-  printf("%s\n", page);
 
   // show page
 

@@ -1,6 +1,7 @@
 
 #define ERROR -1
 #define SUCCESS 0
+#define READ_BUF_SIZE 10
 
 /*
  * Enum for the search strings of availiable search engines
