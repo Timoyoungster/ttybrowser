@@ -175,6 +175,7 @@ char * n_send_request(char *link) {
   error = send(sock, req, strlen(req), 0);
   if (error == -1) {
     fprintf(stderr, "No data sent!");
+    close(sock);
     return NULL;
   }
 
@@ -188,11 +189,11 @@ char * n_send_request(char *link) {
 
   if (error == -1) {
     fprintf(stderr, "Couldn't read response stream!");
+    close(sock);
     return NULL;
   }
 
   close(sock);
-  free(link);
   return "Request sending not yet implemented!";
 }
 
